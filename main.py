@@ -41,9 +41,7 @@ yesterday = list(stock_data.keys())[1]
 
 #------- RUN STOCK REQUESTS ---------#
 
-apple_date = []
-apple_low = []
-apple_high = []
+apple_daily_prices = []
 
 #TODO: Fix bug below to get data into a format ready for excel chart.
 
@@ -51,14 +49,9 @@ def value_check():
     for i in stock_data.keys():
         high_price = float((stock_data[i]['2. high']))
         low_price = float((stock_data[i]['3. low']))
-        apple_date.append(i)
-        apple_low.append(low_price)
-        apple_high.append(high_price)
+        apple_daily_prices.append([i, high_price, low_price]) # converts into list format for dataentry
 
 value_check()
-
-print(apple_daily_prices)
-
 
 #------- CREATING CHART ---------#
 
