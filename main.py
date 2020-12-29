@@ -41,7 +41,6 @@ yesterday = list(stock_data.keys())[1]
 
 #------- RUN STOCK REQUESTS ---------#
 
-apple_daily_prices = []
 apple_date = []
 apple_low = []
 apple_high = []
@@ -55,7 +54,6 @@ def value_check():
         apple_date.append(i)
         apple_low.append(low_price)
         apple_high.append(high_price)
-        apple_daily_prices.append([i, high_price, low_price]) # converts into list format for dataentry
 
 value_check()
 
