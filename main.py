@@ -2,6 +2,8 @@ from openpyxl import Workbook, styles
 from openpyxl.chart import LineChart,Reference
 from openpyxl.chart.axis import DateAxis
 import requests
+import os
+import datetime
 
 ###------- CREATING SHEET AND STYLES ---------###
 
@@ -14,7 +16,6 @@ ws['A1'].font = title_style
 apple_tab = wb.create_sheet("Apple Tab")
 apple_tab['A1'] = "Apple raw data"
 apple_tab['A1'].font = title_style
-
 
 ###------- API VARIABLES ---------###
 
@@ -36,34 +37,37 @@ response = requests.get(STOCK_ENDPOINT, params=stock_param)
 response.raise_for_status()
 stock_data = response.json()["Time Series (Daily)"]
 
-today = list(stock_data.keys())[0]
-yesterday = list(stock_data.keys())[1]
-
 #------- RUN STOCK REQUESTS ---------#
 
 apple_daily_prices = []
 
-#TODO: Fix bug below to get data into a format ready for excel chart.
-
 def value_check():
     for i in stock_data.keys():
+        date = datetime.datetime.strptime(i,'%Y-%m-%d').date() # converts into date time object
         high_price = float((stock_data[i]['2. high']))
         low_price = float((stock_data[i]['3. low']))
-        apple_daily_prices.append([i, high_price, low_price]) # converts into list format for dataentry
+        apple_daily_prices.append([date, high_price, low_price])
 
 value_check()
 
-#------- CREATING CHART ---------#
+#------ HANDLE 4:1 STOCK SPLIT -----#
+
+for i in apple_daily_prices:
+    if i[0] < datetime.date(2020, 8, 28): #this is accessing the date time object from the new daily price list
+        i[1] /= 4                           # this is dividing low and high prices by 4 for the old un-adjusted prices
+        i[2] /= 4
+
+#------- IMPORTING PRICES INTO EXCEL ---------#
 
 rows = [
     ['Date', 'Low', 'High']]
-
 
 for row in rows:
     ws.append(row)
     for i in range(len(apple_daily_prices)):
         ws.append(apple_daily_prices[i])
 
+#------- CREATING CHART ---------#
 
 c1 = LineChart()
 c1.title = "Test Chart"
@@ -71,7 +75,7 @@ c1.style = 13
 c1.y_axis.title = 'Size'
 c1.x_axis.title = 'Test Number'
 
-data = Reference(ws, min_col=2, min_row=1, max_col=4, max_row=7)
+data = Reference(ws, min_col=1, min_row=1, max_col=3, max_row=100)
 c1.add_data(data, titles_from_data=True)
 
 # Style the lines
@@ -93,3 +97,6 @@ s2.smooth = True # Make the line smooth
 ws.add_chart(c1, "E10")
 
 wb.save('stock_tracker.xlsx')
+
+os.system('open stock_tracker.xlsx') # opens excel, can disable
+print("done")
